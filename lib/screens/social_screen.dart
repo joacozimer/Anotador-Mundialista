@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -206,6 +207,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
         }
         
         return ListView.builder(
+          padding: const EdgeInsets.only(bottom: 120, top: 10),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
             final friendDoc = snapshot.data!.docs[index];
@@ -217,23 +219,22 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
               builder: (context, profileSnapshot) {
                 if (!profileSnapshot.hasData) return const SizedBox.shrink();
                 final profile = profileSnapshot.data!;
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
+                return _buildGlassCard(
                   child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     leading: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: const Color(0xFFD4AF37).withOpacity(0.2),
                       backgroundImage: profile.photoUrl != null ? NetworkImage(profile.photoUrl!) : null,
-                      child: profile.photoUrl == null ? const Icon(Icons.person) : null,
+                      child: profile.photoUrl == null ? const Icon(Icons.person, color: Color(0xFFD4AF37)) : null,
                     ),
-                    title: Text(alias ?? profile.nickname ?? 'Sin Nick', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text(alias != null ? '@${profile.nickname}' : profile.displayName ?? '', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                    title: Text(alias ?? profile.nickname ?? 'Sin Nick', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    subtitle: Text(alias != null ? '@${profile.nickname}' : profile.displayName ?? '', style: const TextStyle(color: Colors.white54, fontSize: 12)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildAliasButton(provider, friendUid, alias ?? ''),
+                        const SizedBox(width: 8),
                         const Icon(Icons.chevron_right, color: Colors.white24),
                       ],
                     ),
@@ -305,24 +306,40 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
         }
 
         return ListView.builder(
+          padding: const EdgeInsets.only(bottom: 120, top: 10),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
-            return ListTile(
-              title: Text(doc['fromNick'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              subtitle: const Text('Quiere ser tu amigo', style: TextStyle(color: Colors.white54)),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.check_circle, color: Colors.greenAccent),
-                    onPressed: () => provider.respondToRequest(doc.id, 'accepted'),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.cancel, color: Colors.redAccent),
-                    onPressed: () => provider.respondToRequest(doc.id, 'rejected'),
-                  ),
-                ],
+            return _buildGlassCard(
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                leading: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.blueAccent.withOpacity(0.2),
+                  child: const Icon(Icons.person_add, color: Colors.blueAccent),
+                ),
+                title: Text(doc['fromNick'], style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                subtitle: const Text('Quiere ser tu amigo', style: TextStyle(color: Colors.white54)),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.1), shape: BoxShape.circle),
+                      child: IconButton(
+                        icon: const Icon(Icons.check_circle_outline, color: Colors.greenAccent),
+                        onPressed: () => provider.respondToRequest(doc.id, 'accepted'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.1), shape: BoxShape.circle),
+                      child: IconButton(
+                        icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent),
+                        onPressed: () => provider.respondToRequest(doc.id, 'rejected'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -333,6 +350,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
 
   Widget _buildReservationsTab(WorldCupProvider provider) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 120),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -370,6 +388,7 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
         }
 
         return ListView.builder(
+          padding: const EdgeInsets.only(bottom: 120, top: 10),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
@@ -398,25 +417,41 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
                   }
                 }
 
-                return Card(
-                  color: const Color(0xFF1E293B).withOpacity(0.8),
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                return _buildGlassCard(
                   child: ListTile(
-                    title: Text('Entrega con $displayName', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    leading: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: daysLeft < 2 ? Colors.redAccent.withOpacity(0.2) : Colors.orangeAccent.withOpacity(0.2),
+                      child: Icon(Icons.access_time, color: daysLeft < 2 ? Colors.redAccent : Colors.orangeAccent),
+                    ),
+                    title: Text('Entrega con $displayName', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (originalNick != null) Text('@$originalNick', style: const TextStyle(color: Colors.white24, fontSize: 10)),
+                        if (originalNick != null) Text('@$originalNick', style: const TextStyle(color: Colors.white24, fontSize: 11)),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(Icons.timer, size: 14, color: daysLeft < 2 ? Colors.redAccent : Colors.orangeAccent),
+                            const SizedBox(width: 4),
+                            Text('Vence en $daysLeft días', style: TextStyle(color: daysLeft < 2 ? Colors.redAccent : Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
                         const SizedBox(height: 4),
-                        Text('Vence en $daysLeft días', style: TextStyle(color: daysLeft < 2 ? Colors.redAccent : Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold)),
-                        const Text('No olvides entregar las figuritas físicamente.', style: TextStyle(color: Colors.white38, fontSize: 10)),
+                        const Text('No olvides entregar físicamente.', style: TextStyle(color: Colors.white54, fontSize: 11)),
                       ],
                     ),
                     trailing: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFD4AF37),
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        elevation: 5,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
                       onPressed: () => provider.markAsDelivered(doc.id),
-                      child: const Text('ENTREGADO', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: const Text('ENTREGADO', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
                     ),
                   ),
                 );
@@ -425,6 +460,30 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
           },
         );
       },
+    );
+  }
+
+  Widget _buildGlassCard({required Widget child, EdgeInsetsGeometry? margin, EdgeInsetsGeometry? padding}) {
+    return Container(
+      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(0),
+            child: child,
+          ),
+        ),
+      ),
     );
   }
 
@@ -474,13 +533,11 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
                 offset: Offset(0, 20 * (1 - value)),
                 child: Opacity(opacity: value, child: child),
               ),
-              child: Card(
-                color: const Color(0xFF1E293B).withOpacity(0.8),
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: BorderSide(color: isMyTurn ? Colors.orangeAccent.withOpacity(0.3) : Colors.transparent)),
+              child: _buildGlassCard(
                 child: ListTile(
-                  title: Text('Intercambio con $displayName', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: Text(subNick != null ? '@$subNick | ${wanted.length}↔${offered.length}' : '${wanted.length} figuritas ↔ ${offered.length} figuritas', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  title: Text('Intercambio con $displayName', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  subtitle: Text(subNick != null ? '@$subNick | ${wanted.length}↔${offered.length}' : '${wanted.length} figuritas ↔ ${offered.length} figuritas', style: const TextStyle(color: Colors.white54, fontSize: 12)),
                   trailing: isMyTurn 
                       ? const Icon(Icons.arrow_forward_ios, color: Colors.orangeAccent, size: 14)
                       : const Text('Pendiente', style: TextStyle(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold)),

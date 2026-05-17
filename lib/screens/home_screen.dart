@@ -20,6 +20,7 @@ import 'country_screen.dart';
 import 'badges_screen.dart';
 import 'social_screen.dart';
 import 'calendar_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -362,81 +363,103 @@ class _HomeScreenState extends State<HomeScreen> {
                 }),
                 _buildDrawerItem(Icons.share, 'Compartir rápido', () {
                   Navigator.pop(context);
-                  _quickShare(provider);
+                  _quickShare(context, provider);
                 }),
                 const Divider(color: Colors.white10),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Text('CONFIGURACIÓN', style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 11)),
-                ),
-                SwitchListTile(
-                  title: const Text('Saltear video inicial', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  value: provider.skipIntro,
-                  activeColor: const Color(0xFFD4AF37),
-                  onChanged: (val) => provider.setSkipIntro(val),
-                  secondary: const Icon(Icons.movie_filter, color: Color(0xFFD4AF37)),
-                ),
-                _buildBgSelector(provider),
-                _buildDrawerItem(Icons.lightbulb_outline, 'Enviar Sugerencia', () async {
+                _buildDrawerItem(Icons.settings, 'Configuración', () {
                   Navigator.pop(context);
-                  if (!await provider.isOnline()) {
-                    if (context.mounted) _showOfflineWarning(context);
-                    return;
-                  }
-                  if (context.mounted) _showSuggestionDialog(context, provider);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
                 }),
-                _buildDrawerItem(Icons.star_rate, 'Calificar aplicación', () {
-                  Navigator.pop(context);
-                }),
-                if (user == null)
-                  _buildDrawerItem(Icons.login, 'Iniciar Sesión', () {
-                    Navigator.pop(context);
-                    _handleSignIn(context, provider);
-                  })
-                else
-                  _buildDrawerItem(Icons.logout, 'Cerrar Sesión', () {
-                    Navigator.pop(context);
-                    _showLogoutDialog(context, provider);
-                  }, color: Colors.redAccent),
               ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text('version de aplicacion v${dotenv.env['APP_VERSION'] ?? '1.0.1(34)'}', style: const TextStyle(color: Colors.white24, fontSize: 12, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  void _quickShare(WorldCupProvider provider) {
+  void _quickShare(BuildContext context, WorldCupProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text('¿Qué querés compartir?', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.check_box_outline_blank, color: Color(0xFFD4AF37)),
+              title: const Text('Solo Faltantes', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                _executeShare(provider, shareMissing: true, shareRepeated: false);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy, color: Color(0xFFD4AF37)),
+              title: const Text('Solo Repetidas', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                _executeShare(provider, shareMissing: false, shareRepeated: true);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.all_inclusive, color: Color(0xFFD4AF37)),
+              title: const Text('Ambas', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                _executeShare(provider, shareMissing: true, shareRepeated: true);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getEmojiFlag(String flagCode) {
+    if (flagCode.isEmpty) return '⭐';
+    if (flagCode == 'coca') return '🥤';
+    return flagCode.toUpperCase().split('').map((char) => String.fromCharCode(char.codeUnitAt(0) + 127397)).join();
+  }
+
+  void _executeShare(WorldCupProvider provider, {required bool shareMissing, required bool shareRepeated}) {
     String text = "Comparto mis figuritas del mundial:\n\n";
-    text += "*FALTANTES:*\n";
-    for (var group in provider.groups) {
-      for (var country in group.countries) {
-        List<int> missing = [];
-        for (int i = 1; i <= country.totalStickers; i++) {
-          if (provider.getStickerCount(country.id, i) == 0) missing.add(i);
-        }
-        if (missing.isNotEmpty) {
-          text += "${country.name}(${country.code3}): ${missing.join(', ')}\n";
-        }
-      }
-    }
-    text += "\n*REPETIDAS:*\n";
-    for (var group in provider.groups) {
-      for (var country in group.countries) {
-        List<int> repeated = [];
-        for (int i = 1; i <= country.totalStickers; i++) {
-          int count = provider.getStickerCount(country.id, i);
-          if (count > 1) repeated.add(i);
-        }
-        if (repeated.isNotEmpty) {
-          text += "${country.name}(${country.code3}): ${repeated.join(', ')}\n";
+    
+    if (shareMissing) {
+      text += "*FALTANTES:*\n";
+      for (var group in provider.groups) {
+        for (var country in group.countries) {
+          List<int> missing = [];
+          for (int i = 1; i <= country.totalStickers; i++) {
+            if (country.code3 == 'FWC' && i == 20) continue;
+            if (provider.getStickerCount(country.id, i) == 0) missing.add(i);
+          }
+          if (missing.isNotEmpty) {
+            text += "${_getEmojiFlag(country.flagCode)}(${country.code3}): ${missing.join(', ')}\n";
+          }
         }
       }
     }
+
+    if (shareRepeated) {
+      if (shareMissing) text += "\n";
+      text += "*REPETIDAS:*\n";
+      for (var group in provider.groups) {
+        for (var country in group.countries) {
+          List<int> repeated = [];
+          for (int i = 1; i <= country.totalStickers; i++) {
+            if (country.code3 == 'FWC' && i == 20) continue;
+            int count = provider.getStickerCount(country.id, i);
+            if (count > 1) repeated.add(i);
+          }
+          if (repeated.isNotEmpty) {
+            text += "${_getEmojiFlag(country.flagCode)}(${country.code3}): ${repeated.join(', ')}\n";
+          }
+        }
+      }
+    }
+    
     Share.share(text);
   }
 
