@@ -62,8 +62,17 @@ class SettingsScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.star_rate, color: Color(0xFFD4AF37)),
                 title: const Text('Calificar aplicación', style: TextStyle(color: Colors.white, fontSize: 16)),
-                onTap: () {
-                  // TODO: Implement rate logic
+                onTap: () async {
+                  final url = Uri.parse(AppConfig.playStoreUrl);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  } else {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No se pudo abrir la Play Store'), backgroundColor: Colors.redAccent),
+                      );
+                    }
+                  }
                 },
               ),
               if (user == null)

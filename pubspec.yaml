@@ -1,7 +1,7 @@
 name: anotador_mundial
 description: "Un anotador para las figuitas del mundial 2026"
 publish_to: 'none'
-version: 1.0.1+35
+version: 1.0.1+36
 
 environment:
   sdk: ^3.10.7

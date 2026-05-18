@@ -92,6 +92,7 @@ class WorldCupMatch {
   final String venue;
   final String group;
   final String stage;
+  final String? time;
   final String? result;
 
   const WorldCupMatch({
@@ -102,6 +103,7 @@ class WorldCupMatch {
     required this.venue,
     this.group = '',
     this.stage = 'Fase de Grupos',
+    this.time,
     this.result,
   });
 }

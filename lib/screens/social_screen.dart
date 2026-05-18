@@ -189,10 +189,13 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFD4AF37),
-        onPressed: () => _showAddFriendOptions(provider),
-        child: const Icon(Icons.person_add, color: Colors.black),
+      floatingActionButton: Transform.translate(
+        offset: const Offset(0, 30),
+        child: FloatingActionButton(
+          backgroundColor: const Color(0xFFD4AF37),
+          onPressed: () => _showAddFriendOptions(provider),
+          child: const Icon(Icons.person_add, color: Colors.black),
+        ),
       ),
     );
   }
@@ -860,11 +863,16 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
   void _showAddFriendOptions(WorldCupProvider provider) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return SafeArea(
-          child: Wrap(
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 10, 16, 30),
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(25)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
+              Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
               ListTile(
                 leading: const Icon(Icons.search, color: Color(0xFFD4AF37)),
                 title: const Text('Buscar por Nick', style: TextStyle(color: Colors.white)),
@@ -903,22 +911,29 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('Mi Código QR', style: TextStyle(color: Colors.white)),
-        content: SizedBox(
-          width: 250,
-          height: 250,
-          child: Center(
-            child: QrImageView(
-              data: nick,
-              version: QrVersions.auto,
-              backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.all(24),
+        title: Center(child: Text('TU CÓDIGO QR', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 1))),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Muestra este código para que te añadan', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 13)),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: const Color(0xFFD4AF37).withOpacity(0.3), blurRadius: 15, spreadRadius: 2)]),
+              child: QrImageView(data: nick, version: QrVersions.auto, size: 200),
             ),
-          ),
+            const SizedBox(height: 15),
+            Text('@$nick', style: GoogleFonts.outfit(color: const Color(0xFFD4AF37), fontSize: 22, fontWeight: FontWeight.bold)),
+          ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), 
-            child: const Text('CERRAR', style: TextStyle(color: Color(0xFFD4AF37)))
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context), 
+              child: const Text('CERRAR', style: TextStyle(color: Colors.white54))
+            ),
           ),
         ],
       ),
@@ -928,20 +943,61 @@ class _SocialScreenState extends State<SocialScreen> with SingleTickerProviderSt
   void _scanQR(WorldCupProvider provider) {
     bool hasScanned = false;
     Navigator.push(context, MaterialPageRoute(builder: (context) => Scaffold(
-      appBar: AppBar(title: const Text('Escanear QR')),
-      body: MobileScanner(
-        onDetect: (capture) {
-          if (hasScanned) return;
-          final List<Barcode> barcodes = capture.barcodes;
-          if (barcodes.isNotEmpty) {
-            final String code = barcodes.first.rawValue ?? '';
-            if (code.isNotEmpty) {
-              hasScanned = true;
-              Navigator.pop(context);
-              _addFriendByNick(provider, code);
-            }
-          }
-        },
+      backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text('ESCANEAR QR', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.white)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Stack(
+        children: [
+          MobileScanner(
+            onDetect: (capture) {
+              if (hasScanned) return;
+              final List<Barcode> barcodes = capture.barcodes;
+              if (barcodes.isNotEmpty) {
+                final String code = barcodes.first.rawValue ?? '';
+                if (code.isNotEmpty) {
+                  hasScanned = true;
+                  Navigator.pop(context);
+                  _addFriendByNick(provider, code);
+                }
+              }
+            },
+          ),
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.8), BlendMode.srcOut),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Container(
+                  decoration: const BoxDecoration(color: Colors.black, backgroundBlendMode: BlendMode.dstOut),
+                ),
+                Center(
+                  child: Container(
+                    width: 250, height: 250,
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Center(
+            child: Container(
+              width: 250, height: 250,
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFD4AF37), width: 3),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          const Positioned(
+            bottom: 80, left: 0, right: 0,
+            child: Text('Apunta la cámara al código QR', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 16)),
+          ),
+        ],
       ),
     )));
   }

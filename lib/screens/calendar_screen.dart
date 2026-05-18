@@ -41,8 +41,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (normalized.contains('BOSNIA')) return 'ba';
     if (normalized.contains('CATAR')) return 'qa';
     if (normalized.contains('IRAN')) return 'ir';
-    if (normalized.contains('ARABIA S.')) return 'sa';
+    if (normalized.contains('ARABIA')) return 'sa';
     if (normalized.contains('NIGERIA')) return 'ng';
+    if (normalized.contains('CONGO')) return 'cd';
+    if (normalized.contains('IRAK') || normalized.contains('IRAQ')) return 'iq';
     
     return null;
   }
@@ -81,6 +83,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
           Column(
             children: [
               const SizedBox(height: 100),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text('Todos los horarios son del Este de Estados Unidos (EST)', style: TextStyle(color: Colors.white70, fontSize: 11, fontStyle: FontStyle.italic)),
+              ),
               _buildGroupFilter(),
               Expanded(
                 child: filteredMatches.isEmpty
@@ -139,7 +145,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(match.date.toUpperCase(), style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1)),
+                Row(
+                  children: [
+                    Text(match.date.toUpperCase(), style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1)),
+                    if (match.time != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: const Color(0xFFD4AF37).withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+                        child: Text('${match.time} EST', style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ],
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(4)),
